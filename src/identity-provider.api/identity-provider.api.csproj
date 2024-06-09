@@ -10,6 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AWSSDK.CloudWatchLogs" Version="3.7.305.21" />
 		<PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.5.4" />
 		<PackageReference Include="AWSSDK.CognitoIdentity" Version="3.7.300.101" />
 		<PackageReference Include="AWSSDK.SecretsManager" Version="3.7.303.8" />
@@ -17,10 +18,8 @@
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.2" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="responses\" />
+		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+		<PackageReference Include="Serilog.Sinks.AwsCloudWatch" Version="4.2.25" />
 	</ItemGroup>
 
 </Project>

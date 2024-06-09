@@ -9,6 +9,8 @@ public static class Endpoints
     {
         app.MapPost("/token", async (HttpContext context, TokenRequest model, AuthenticationService service) =>
         {
+            Serilog.Log.Error("Test");
+
             try
             {
                 var result = await service.Authenticate(model.Username, model.Password);
@@ -26,7 +28,7 @@ public static class Endpoints
             }
             catch (Exception ex)
             {
-
+                Serilog.Log.Error(ex, "Error getting token");
                 throw;
             }
         })
@@ -56,6 +58,7 @@ public static class Endpoints
             return Results.Ok(claims);
         })
         .WithName("GetProfile")
-        .WithOpenApi();
+        .WithOpenApi()
+        .RequireAuthorization();
     }
 }
