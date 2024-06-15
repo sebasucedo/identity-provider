@@ -7,9 +7,11 @@
 		<RootNamespace>identity_provider.api</RootNamespace>
 		<UserSecretsId>0180cc3d-0655-47a3-8b4b-503c2d7f96d5</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<AWSProjectType>Lambda</AWSProjectType>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="1.7.0" />
 		<PackageReference Include="AWSSDK.CloudWatchLogs" Version="3.7.305.21" />
 		<PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.5.4" />
 		<PackageReference Include="AWSSDK.CognitoIdentity" Version="3.7.300.101" />

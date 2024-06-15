@@ -93,7 +93,7 @@ public static class Extensions
         using var serviceProvider = services.BuildServiceProvider();
         var awsConfig = serviceProvider.GetRequiredService<IOptions<AwsConfig>>().Value;
 
-        var logClient = new AmazonCloudWatchLogsClient(awsConfig.AccessKey, awsConfig.SecretKey, awsConfig.Region);
+        var logClient = new AmazonCloudWatchLogsClient(awsConfig.AccessKey, awsConfig.SecretKey, RegionEndpoint.GetBySystemName(awsConfig.Region));
 
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
@@ -104,14 +104,13 @@ public static class Extensions
                 batchSizeLimit: 100,
                 queueSizeLimit: 10000,
                 batchUploadPeriodInSeconds: 15,
-                createLogGroup: true,       
+                createLogGroup: true,
                 maxRetryAttempts: 3,
                 logGroupRetentionPolicy: LogGroupRetentionPolicy.OneMonth,
                 cloudWatchClient: logClient,
                 restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
             .CreateLogger();
 
-        
         return services;
     }
 }

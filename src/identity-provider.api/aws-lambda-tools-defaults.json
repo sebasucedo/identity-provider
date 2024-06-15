@@ -1,0 +1,22 @@
+
+{
+    "region" : "us-east-1",
+    "profile" : "default",
+    "configuration" : "Release",
+    "framework"     : "net8.0",
+    "function-name" : "identity-provider",
+    "function-description" : "",
+    "package-type"         : "Zip",
+    "function-handler"     : "identity-provider.api",
+    "function-memory-size" : 512,
+    "function-role"        : "arn:aws:iam::618148662581:role/service-role/identity-provider-role-dljzx7i4",
+    "function-timeout"     : 15,
+    "function-runtime"     : "dotnet8",
+    "function-architecture" : "x86_64",
+    "function-subnets"      : "",
+    "function-security-groups" : "",
+    "tracing-mode"             : "PassThrough",
+    "environment-variables"    : "\"SECRET_NAME\"=\"dev/identity-provider/config\";\"SECRET_KEY\"=\"BxjO+kVcORRz3COrIl7J8b4ZDRi2K5PwvJ0BZUiJ\";\"ACCESS_KEY\"=\"AKIAY73EIBU2VDFX2DW3\";\"REGION\"=\"us-east-1\"",
+    "dockerfile"               : "Dockerfile",
+    "image-tag"                : ""
+}

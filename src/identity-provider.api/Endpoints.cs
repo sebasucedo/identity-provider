@@ -7,6 +7,9 @@ public static class Endpoints
 {
     public static void Map(WebApplication app)
     {
+
+        app.MapGet("/", () => "Hello auth!");
+
         app.MapPost("/token", async (HttpContext context, TokenRequest model, AuthenticationService service) =>
         {
             Serilog.Log.Error("Test");
@@ -44,7 +47,7 @@ public static class Endpoints
             }
             catch (Exception ex)
             {
-
+                Serilog.Log.Error(ex, "Error setting new password");
                 throw;
             }
         })
