@@ -1,7 +1,3 @@
 ﻿namespace identity_provider.api.requests;
 
-public class TokenRequest
-{
-    public required string Username { get; set; }
-    public required string Password { get; set; }
-}
+public record TokenRequest(string Username, string Password);

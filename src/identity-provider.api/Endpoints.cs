@@ -7,9 +7,6 @@ public static class Endpoints
 {
     public static void Map(WebApplication app)
     {
-
-        app.MapGet("/", () => "Hello auth!");
-
         app.MapPost("/token", async (HttpContext context, TokenRequest model, AuthenticationService service) =>
         {
             Serilog.Log.Error("Test");
@@ -52,6 +49,22 @@ public static class Endpoints
             }
         })
         .WithName("PostNewPassword")
+        .WithOpenApi();
+
+        app.MapPost("/create-user", async (HttpContext context, CreateUserRequest request, AuthenticationService service) =>
+        {
+            try
+            {
+                await service.CreateUser(request.Username, request.TemporaryPassword);
+                return Results.Ok();
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Error creating user");
+                throw;
+            }
+        })
+        .WithName("PostCreateUser")
         .WithOpenApi();
 
         app.MapGet("/profile", (HttpContext context) =>

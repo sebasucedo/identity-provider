@@ -47,7 +47,7 @@ public static class Extensions
         {
             return new AmazonCognitoIdentityProviderClient(
                         new BasicAWSCredentials(awsConfig.Cognito.ClientId, awsConfig.Cognito.ClientSecret),
-                        RegionEndpoint.GetBySystemName(awsConfig.Region)
+                            RegionEndpoint.GetBySystemName(awsConfig.Region)
                                                          );
         });
 
@@ -108,7 +108,7 @@ public static class Extensions
                 maxRetryAttempts: 3,
                 logGroupRetentionPolicy: LogGroupRetentionPolicy.OneMonth,
                 cloudWatchClient: logClient,
-                restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
+                restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
             .CreateLogger();
 
         return services;
