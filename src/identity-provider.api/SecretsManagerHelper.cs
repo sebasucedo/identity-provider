@@ -20,7 +20,7 @@ public class SecretsManagerHelper
         var secretValue = await client.GetSecretValueAsync(new GetSecretValueRequest 
         { 
             SecretId = secretName,
-            VersionStage = "AWSCURRENT"
+            VersionStage = Constants.SecretsManager.AWSCURRENT
         });
 
         var secretString = secretValue.SecretString ?? throw new InvalidOperationException(secretName);

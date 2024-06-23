@@ -7,7 +7,7 @@ public static class Endpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapPost("/token", async (HttpContext context, TokenRequest model, AuthenticationService service) =>
+        app.MapPost(Constants.Endpoints.TOKEN, async (HttpContext context, TokenRequest model, AuthenticationService service) =>
         {
             Serilog.Log.Error("Test");
 
@@ -35,7 +35,7 @@ public static class Endpoints
         .WithName("GetToken")
         .WithOpenApi();
 
-        app.MapPost("/new-password", async (HttpContext context, NewPasswordRequest request, AuthenticationService service) =>
+        app.MapPost(Constants.Endpoints.NEW_PASSWORD, async (HttpContext context, NewPasswordRequest request, AuthenticationService service) =>
         {
             try
             {
@@ -51,7 +51,7 @@ public static class Endpoints
         .WithName("PostNewPassword")
         .WithOpenApi();
 
-        app.MapPost("/create-user", async (HttpContext context, CreateUserRequest request, AuthenticationService service) =>
+        app.MapPost(Constants.Endpoints.CREATE_USER, async (HttpContext context, CreateUserRequest request, AuthenticationService service) =>
         {
             try
             {
@@ -67,7 +67,7 @@ public static class Endpoints
         .WithName("PostCreateUser")
         .WithOpenApi();
 
-        app.MapGet("/profile", (HttpContext context) =>
+        app.MapGet(Constants.Endpoints.PROFILE, (HttpContext context) =>
         {
             var user = context.User;
             var claims = user.Claims.Select(item => new KeyValuePair<string, string>(item.Type, item.Value)).ToList();
