@@ -17,10 +17,26 @@ public static class Constants
         public const string CREATE_USER = "/create-user";
         public const string PROFILE = "/profile";
     }
+
     public static class Credentials
     {
         public const string USERNAME = "USERNAME";
         public const string PASSWORD = "PASSWORD";
         public const string SECRET_HASH = "SECRET_HASH";
+    }
+
+    public static class SecretsManager
+    {
+        public const string AWSCURRENT = "AWSCURRENT";
+    }
+
+    public static class FormIdentifier
+    {
+        public const string TOKEN_USERNAME = "username";
+        public const string TOKEN_PASSWORD = "password";
+
+        public const string NEW_PASSWORD_USERNAME = "username";
+        public const string NEW_PASSWORD_NEW_PASSWORD = "newPassword";
+        public const string NEW_PASSWORD_SESSION = "session";
     }
 }

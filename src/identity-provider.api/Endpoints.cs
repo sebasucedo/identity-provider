@@ -7,22 +7,36 @@ public static class Endpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapPost(Constants.Endpoints.TOKEN, async (HttpContext context, TokenRequest model, AuthenticationService service) =>
+        app.MapPost(Constants.Endpoints.TOKEN, async (HttpContext context, AuthenticationService service) =>
         {
-            Serilog.Log.Error("Test");
-
             try
             {
+                var validationResponse = await ValidateTokenRequest(context);
+                if (validationResponse != null)
+                    return Results.Json(validationResponse);
+
+                var form = await context.Request.ReadFormAsync();
+                var model = new TokenRequest(
+                                    form[Constants.FormIdentifier.TOKEN_USERNAME].ToString(),
+                                    form[Constants.FormIdentifier.TOKEN_PASSWORD].ToString()
+                                );
+
                 var result = await service.Authenticate(model.Username, model.Password);
-                return Results.Ok(result);
+                var response = new ApiResponse<AuthenticationResponse>
+                {
+                    Success = true,
+                    Message = "Token generated",
+                    Data = result,
+                };
+                return Results.Ok(response);
             }
             catch (Amazon.CognitoIdentityProvider.Model.NotAuthorizedException ex)
             {
-                var response = new
+                var response = new ApiResponse<string>
                 {
-                    ex.Message,
+                    Success = false,
+                    Message = ex.Message,
                 };
-
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return Results.Json(response);
             }
@@ -35,12 +49,28 @@ public static class Endpoints
         .WithName("GetToken")
         .WithOpenApi();
 
-        app.MapPost(Constants.Endpoints.NEW_PASSWORD, async (HttpContext context, NewPasswordRequest request, AuthenticationService service) =>
+        app.MapPost(Constants.Endpoints.NEW_PASSWORD, async (HttpContext context, AuthenticationService service) =>
         {
             try
             {
+                var validationResponse = await ValidateNewPasswordRequest(context);
+                if (validationResponse != null)
+                    return Results.Json(validationResponse);
+
+                var form = await context.Request.ReadFormAsync();
+                var request = new NewPasswordRequest(
+                                    form[Constants.FormIdentifier.NEW_PASSWORD_USERNAME].ToString(),
+                                    form[Constants.FormIdentifier.NEW_PASSWORD_NEW_PASSWORD].ToString(),
+                                    form[Constants.FormIdentifier.NEW_PASSWORD_SESSION].ToString()
+                                );
                 var result = await service.RespondToNewPasswordChallenge(request.Username, request.NewPassword, request.Session);
-                return Results.Ok(result);
+                var response = new ApiResponse<AuthenticationResponse>
+                {
+                    Success = true,
+                    Message = "Password set",
+                    Data = result,
+                };
+                return Results.Ok(response);
             }
             catch (Exception ex)
             {
@@ -66,15 +96,81 @@ public static class Endpoints
         })
         .WithName("PostCreateUser")
         .WithOpenApi();
+        //.RequireAuthorization();
 
         app.MapGet(Constants.Endpoints.PROFILE, (HttpContext context) =>
         {
             var user = context.User;
             var claims = user.Claims.Select(item => new KeyValuePair<string, string>(item.Type, item.Value)).ToList();
-            return Results.Ok(claims);
+            var response = new ApiResponse<List<KeyValuePair<string, string>>>
+            {
+                Success = true,
+                Message = "Profile retrieved",
+                Data = claims,
+            };
+            return Results.Ok(response);
         })
         .WithName("GetProfile")
         .WithOpenApi()
         .RequireAuthorization();
+    }
+
+    private static async Task<ApiResponse<string>?> ValidateTokenRequest(HttpContext context)
+    {
+        if (!context.Request.HasFormContentType)
+        {
+            var response = new ApiResponse<string>
+            {
+                Success = false,
+                Message = "Invalid content type",
+            };
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return response;
+        }
+
+        var form = await context.Request.ReadFormAsync();
+        if (!form.ContainsKey(Constants.FormIdentifier.TOKEN_USERNAME) || !form.ContainsKey(Constants.FormIdentifier.TOKEN_PASSWORD))
+        {
+            var response = new ApiResponse<string>
+            {
+                Success = false,
+                Message = "Missing username or password",
+            };
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return response;
+        }
+
+        return null;
+    }
+
+    private static async Task<ApiResponse<string>?> ValidateNewPasswordRequest(HttpContext context)
+    {
+        if (!context.Request.HasFormContentType)
+        {
+            var response = new ApiResponse<string>
+            {
+                Success = false,
+                Message = "Invalid content type",
+            };
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return response;
+        }
+
+        var form = await context.Request.ReadFormAsync();
+        if (!form.ContainsKey(Constants.FormIdentifier.NEW_PASSWORD_USERNAME) ||
+            !form.ContainsKey(Constants.FormIdentifier.NEW_PASSWORD_NEW_PASSWORD) ||
+            !form.ContainsKey(Constants.FormIdentifier.NEW_PASSWORD_SESSION))
+        {
+            var response = new ApiResponse<string>
+            {
+                Success = false,
+                Message = "Missing username, newPassword or session",
+            };
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return response;
+        }
+
+        return null;
+
     }
 }

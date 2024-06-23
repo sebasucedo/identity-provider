@@ -8,12 +8,16 @@ namespace identity_provider.api;
 
 public class SecretsManagerHelper
 {
-    public static async Task<IConfiguration> GetConfigurationFromPlainText()
+    public static async Task<IConfigurationRoot> GetConfigurationFromPlainText()
     {
-        string region = Environment.GetEnvironmentVariable("REGION") ?? throw new InvalidOperationException("REGION");
-        string accessKey = Environment.GetEnvironmentVariable("ACCESS_KEY") ?? throw new InvalidOperationException("ACCESS_KEY");
-        string secretKey = Environment.GetEnvironmentVariable("SECRET_KEY") ?? throw new InvalidOperationException("SECRET_KEY");
-        string secretName = Environment.GetEnvironmentVariable("SECRET_NAME") ?? throw new InvalidOperationException("SECRET_NAME");
+        string region = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.AWS_REGION) 
+                            ?? throw new InvalidOperationException(Constants.EnvironmentVariables.AWS_REGION);
+        string accessKey = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.AWS_ACCESS_KEY) 
+                            ?? throw new InvalidOperationException(Constants.EnvironmentVariables.AWS_ACCESS_KEY);
+        string secretKey = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.AWS_SECRET_KEY) 
+                            ?? throw new InvalidOperationException(Constants.EnvironmentVariables.AWS_SECRET_KEY);
+        string secretName = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.AWS_SECRET_NAME) 
+                            ?? throw new InvalidOperationException(Constants.EnvironmentVariables.AWS_SECRET_NAME);
     
         var credential = new BasicAWSCredentials(accessKey, secretKey);
         using var client = new AmazonSecretsManagerClient(credential, RegionEndpoint.GetBySystemName(region));
@@ -32,7 +36,7 @@ public class SecretsManagerHelper
                           .AddJsonStream(reader.BaseStream)
                           .AddEnvironmentVariables();
 
-        IConfiguration configuration = builder.Build();
+        IConfigurationRoot configuration = builder.Build();
 
         return configuration;
     }

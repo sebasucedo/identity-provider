@@ -6,7 +6,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 
-IConfiguration configuration = await SecretsManagerHelper.GetConfigurationFromPlainText();
+IConfigurationRoot configuration;
+if (builder.Environment.IsDevelopment())
+    configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+                    .AddEnvironmentVariables()
+                    .Build() ?? throw new Exception("Configuration is null");
+else
+    configuration = await SecretsManagerHelper.GetConfigurationFromPlainText();
 builder.Services.Configure<AwsConfig>(configuration.GetSection("Aws"));
 
 builder.Services.AddTransient<AuthenticationService>();
@@ -18,11 +27,13 @@ builder.Host.UseSerilog();
 
 builder.Services.AddSwagger();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.OperationFilter<FormDataOperationFilter>();
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
 app.UseSwagger();

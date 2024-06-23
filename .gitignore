@@ -398,3 +398,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 appsettings.Development.json
+launchSettings.json
+aws-lambda-tools-defaults.json
