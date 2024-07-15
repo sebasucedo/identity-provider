@@ -25,7 +25,9 @@ jobs:
       run: dotnet publish src/identity-provider.api/identity-provider.api.csproj -c Release -o ./publish
 
     - name: Zip Lambda package
-      run: zip -r lambda-package.zip ./publish/*
+      run: |
+        cd publish
+        zip -r ../lambda-package.zip ./*
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
