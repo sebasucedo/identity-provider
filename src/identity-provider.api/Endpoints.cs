@@ -113,6 +113,11 @@ public static class Endpoints
         .WithName("GetProfile")
         .WithOpenApi()
         .RequireAuthorization();
+
+        app.MapGet(Constants.Endpoints.HEALTH, () =>
+        {
+            return Results.Ok("Healthy");
+        });
     }
 
     private static async Task<ApiResponse<string>?> ValidateTokenRequest(HttpContext context)
