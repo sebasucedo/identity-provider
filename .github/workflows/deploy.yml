@@ -19,10 +19,10 @@ jobs:
         dotnet-version: '8.x'
 
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore src/identity-provider/identity-provider.csproj
 
     - name: Build project
-      run: dotnet publish -c Release -o ./publish
+      run: dotnet publish src/identity-provider/identity-provider.csproj -c Release -o ./publish
 
     - name: Zip Lambda package
       run: zip -r lambda-package.zip ./publish/*
@@ -36,4 +36,4 @@ jobs:
 
     - name: Deploy to AWS Lambda
       run: |
-        aws lambda update-function-code --function-name your-lambda-function-name --zip-file fileb://lambda-package.zip
+        aws lambda update-function-code --function-name identity-provider --zip-file fileb://lambda-package.zip
