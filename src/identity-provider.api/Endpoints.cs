@@ -114,7 +114,7 @@ public static class Endpoints
         .WithOpenApi()
         .RequireAuthorization();
 
-        app.MapGet(Constants.Endpoints.HEALTH, () =>
+        app.MapGet(Constants.Endpoints.HEALTHCHECK, () =>
         {
             return Results.Ok("Healthy");
         });

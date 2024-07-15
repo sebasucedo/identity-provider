@@ -16,7 +16,7 @@ public static class Constants
         public const string NEW_PASSWORD = "/new-password";
         public const string CREATE_USER = "/create-user";
         public const string PROFILE = "/profile";
-        public const string HEALTH = "/healthceck";
+        public const string HEALTHCHECK = "/healthcheck";
     }
 
     public static class Credentials
