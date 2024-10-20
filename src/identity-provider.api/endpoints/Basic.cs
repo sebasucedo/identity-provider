@@ -1,11 +1,11 @@
 ﻿using identity_provider.api.requests;
 using identity_provider.api.services;
 
-namespace identity_provider.api;
+namespace identity_provider.api.endpoints;
 
-public static class Endpoints
+public static class Basic
 {
-    public static void Map(WebApplication app)
+    public static void AddEndpoints(this WebApplication app)
     {
         app.MapPost(Constants.Endpoints.TOKEN, async (HttpContext context, AuthenticationService service) =>
         {
@@ -81,23 +81,6 @@ public static class Endpoints
         .WithName("PostNewPassword")
         .WithOpenApi();
 
-        app.MapPost(Constants.Endpoints.CREATE_USER, async (HttpContext context, CreateUserRequest request, AuthenticationService service) =>
-        {
-            try
-            {
-                await service.CreateUser(request.Username, request.TemporaryPassword);
-                return Results.Ok();
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, "Error creating user");
-                throw;
-            }
-        })
-        .WithName("PostCreateUser")
-        .WithOpenApi();
-        //.RequireAuthorization();
-
         app.MapGet(Constants.Endpoints.PROFILE, (HttpContext context) =>
         {
             var user = context.User;
@@ -118,7 +101,9 @@ public static class Endpoints
         {
             return Results.Ok("Healthy");
         });
+
     }
+
 
     private static async Task<ApiResponse<string>?> ValidateTokenRequest(HttpContext context)
     {

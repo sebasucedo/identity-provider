@@ -7,10 +7,10 @@ using System.Text;
 
 namespace identity_provider.api.services;
 
-public class AuthenticationService(IAmazonCognitoIdentityProvider amazonCognitoIdentityProvider,
+public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> cognitoClientFactory,
                                    IOptions<AwsConfig> awsConfigOptions)
 {
-    private readonly IAmazonCognitoIdentityProvider _provider = amazonCognitoIdentityProvider;
+    private readonly IAmazonCognitoIdentityProvider _provider = cognitoClientFactory(Constants.Keys.APP_CLIENT);
     private readonly string _userPoolId = awsConfigOptions.Value.Cognito.UserPoolId;
     private readonly string _clientId = awsConfigOptions.Value.Cognito.ClientId;
     private readonly string _clientSecret = awsConfigOptions.Value.Cognito.ClientSecret;
@@ -80,21 +80,7 @@ public class AuthenticationService(IAmazonCognitoIdentityProvider amazonCognitoI
         return result;
     }
 
-    public async Task CreateUser(string username, string temporaryPassword)
-    {
-        var adminCreateUserRequest = new AdminCreateUserRequest
-        {
-            UserPoolId = _userPoolId,
-            Username = username,
-            TemporaryPassword = temporaryPassword,
-            MessageAction = "SUPPRESS"
-        };
 
-        //https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminCreateUser.html
-        var response = await _provider.AdminCreateUserAsync(adminCreateUserRequest);
-
-        return;
-    }
 
     private string CalculateSecretHash(string username)
     {

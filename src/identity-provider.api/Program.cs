@@ -1,24 +1,14 @@
 using identity_provider.api;
-using identity_provider.api.services;
+using identity_provider.api.endpoints;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 
-IConfigurationRoot configuration;
-if (builder.Environment.IsDevelopment())
-    configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
-                    .AddEnvironmentVariables()
-                    .Build() ?? throw new Exception("Configuration is null");
-else
-    configuration = await SecretsManagerHelper.GetConfigurationFromPlainText();
-builder.Services.Configure<AwsConfig>(configuration.GetSection("Aws"));
+IConfigurationRoot configuration = await GetConfiguration(builder);
 
-builder.Services.AddTransient<AuthenticationService>();
+builder.Services.AddServices();
 
 builder.Services.AddSecurity();
 
@@ -34,17 +24,34 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-//if (app.Environment.IsDevelopment())
-//{
-app.UseSwagger();
-app.UseSwaggerUI();
-//}
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-Endpoints.Map(app);
+app.AddEndpoints();
+app.AddAdminEndpoints();
 
 app.Run();
+
+static async Task<IConfigurationRoot> GetConfiguration(WebApplicationBuilder builder)
+{
+    IConfigurationRoot configuration;
+    if (builder.Environment.IsDevelopment())
+        configuration = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                        .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+                        .AddEnvironmentVariables()
+                        .Build() ?? throw new Exception("Configuration is null");
+    else
+        configuration = await SecretsManagerHelper.GetConfigurationFromPlainText();
+    builder.Services.Configure<AwsConfig>(configuration.GetSection("Aws"));
+    return configuration;
+}

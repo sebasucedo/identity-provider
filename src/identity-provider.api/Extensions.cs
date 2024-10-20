@@ -2,6 +2,7 @@
 using Amazon.CloudWatchLogs;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Runtime;
+using identity_provider.api.services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -13,6 +14,29 @@ namespace identity_provider.api;
 
 public static class Extensions
 {
+    public static IServiceCollection AddServices(this IServiceCollection services)
+    {
+        using var serviceProvider = services.BuildServiceProvider();
+        var awsConfig = serviceProvider.GetRequiredService<IOptions<AwsConfig>>().Value;
+
+        services.AddTransient<Func<string, IAmazonCognitoIdentityProvider>>(serviceProvider => key =>
+        {
+            return key switch
+            {
+                Constants.Keys.APP_CLIENT => new AmazonCognitoIdentityProviderClient(
+                                                new BasicAWSCredentials(awsConfig.Cognito.ClientId, awsConfig.Cognito.ClientSecret),
+                                                RegionEndpoint.GetBySystemName(awsConfig.Region)),
+                Constants.Keys.IAM_CLIENT => new AmazonCognitoIdentityProviderClient(
+                                                new BasicAWSCredentials(awsConfig.AccessKey, awsConfig.SecretKey),
+                                                RegionEndpoint.GetBySystemName(awsConfig.Region)),
+                _ => throw new ArgumentException("Invalid client key")
+            };
+        });
+        services.AddTransient<AuthenticationService>();
+        services.AddTransient<AdministrationService>();
+
+        return services;
+    }
     public static IServiceCollection AddSecurity(this IServiceCollection services)
     {
         using var serviceProvider = services.BuildServiceProvider();
@@ -27,19 +51,27 @@ public static class Extensions
                     options.Authority = validIssuer;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
+                        ValidateLifetime = true,
+                        ValidAudience = validAudience,
+                        ValidateAudience = true,
+
                         ValidateIssuer = true,
                         ValidIssuer = validIssuer,
-                        ValidateAudience = true,
-                        ValidAudience = validAudience,
-                        ValidateLifetime = true
+
+                        NameClaimType = Constants.Cognito.USERNAME_CLAIM,
+                        RoleClaimType = Constants.Cognito.ROLE_CLAIM,
                     };
                 });
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("Authenticated", policy =>
+            options.AddPolicy(Constants.Policies.AUTHENTICATED_POLICY, policy =>
             {
                 policy.RequireAuthenticatedUser();
+            });
+            options.AddPolicy(Constants.Policies.ADMINISTRATORS_ONLY_POLICY, policy =>
+            {
+                policy.RequireRole(Constants.Roles.ADMINISTRATORS);
             });
         });
 
