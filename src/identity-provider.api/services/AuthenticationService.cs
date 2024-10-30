@@ -1,7 +1,7 @@
-﻿
-using Amazon.CognitoIdentityProvider;
+﻿using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Microsoft.Extensions.Options;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -11,7 +11,6 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
                                    IOptions<AwsConfig> awsConfigOptions)
 {
     private readonly IAmazonCognitoIdentityProvider _provider = cognitoClientFactory(Constants.Keys.APP_CLIENT);
-    private readonly string _userPoolId = awsConfigOptions.Value.Cognito.UserPoolId;
     private readonly string _clientId = awsConfigOptions.Value.Cognito.ClientId;
     private readonly string _clientSecret = awsConfigOptions.Value.Cognito.ClientSecret;
 
@@ -24,13 +23,13 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
             ClientId = _clientId,
             AuthParameters =
             {
-                { "USERNAME", username },
-                { "PASSWORD", password },
+                { Constants.Keys.USERNAME, username },
+                { Constants.Keys.PASSWORD, password },
             }
         };
 
         if (!string.IsNullOrEmpty(_clientSecret))
-            authRequest.AuthParameters.Add("SECRET_HASH", CalculateSecretHash(username));
+            authRequest.AuthParameters.Add(Constants.Keys.SECRET_HASH, CalculateSecretHash(username));
 
         var authResponse = await _provider.InitiateAuthAsync(authRequest);
 
@@ -63,9 +62,9 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
             Session = session,
             ChallengeResponses = new Dictionary<string, string>
             {
-                { "USERNAME", username },
-                { "NEW_PASSWORD", newPassword },
-                { "SECRET_HASH", secretHash }
+                { Constants.Keys.USERNAME, username },
+                { Constants.Keys.NEW_PASSWORD, newPassword },
+                { Constants.Keys.SECRET_HASH, secretHash }
             }
         };
 
@@ -80,7 +79,71 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
         return result;
     }
 
+    public async Task<SignUpResponse> SignUp(string username,
+                                             string email,
+                                             string password)
+    {
+        var signUpRequest = new SignUpRequest
+        {
+            ClientId = _clientId,
+            Username = username,
+            Password = password,
+            UserAttributes =
+            {
+                new AttributeType
+                {
+                    Name = Constants.AttributeTypes.EMAIL,
+                    Value = email
+                }
+            }
+        };
 
+        if (!string.IsNullOrEmpty(_clientSecret))
+            signUpRequest.SecretHash = CalculateSecretHash(username);
+
+        var response = await _provider.SignUpAsync(signUpRequest);
+        var codeDeliveryDetails = $"A verification code has been sent to your email ({response.CodeDeliveryDetails.Destination}).";
+        var result = new SignUpResponse(response.UserSub, 
+                                        codeDeliveryDetails);
+
+        return result;
+    }
+
+    public async Task ConfirmSignUp(string username, 
+                                    string confirmationCode)
+    {
+        var request = new ConfirmSignUpRequest
+        {
+            ClientId = _clientId,
+            Username = username,
+            ConfirmationCode = confirmationCode
+        };
+
+        if (!string.IsNullOrEmpty(_clientSecret))
+            request.SecretHash = CalculateSecretHash(username);
+
+        var response = await _provider.ConfirmSignUpAsync(request);
+
+        if (response.HttpStatusCode != HttpStatusCode.OK)
+            throw new Exception("Error confirming signup");
+    }
+
+    public async Task ResendConfirmation(string username)
+    {
+        var request = new ResendConfirmationCodeRequest
+        {
+            ClientId = _clientId,
+            Username = username
+        };
+
+        if (!string.IsNullOrEmpty(_clientSecret))
+            request.SecretHash = CalculateSecretHash(username);
+
+        var response = await _provider.ResendConfirmationCodeAsync(request);
+
+        if (response.HttpStatusCode != HttpStatusCode.OK)
+            throw new Exception("Error resending confirmation code");
+    }
 
     private string CalculateSecretHash(string username)
     {
@@ -91,10 +154,6 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
         byte[] hashBytes = hmac.ComputeHash(messageBytes);
         return Convert.ToBase64String(hashBytes);
     }
+
 }
 
-public record AuthenticationResponse(string? AccessToken,
-                                     string? IdToken,
-                                     string? RefreshToken,
-                                     string? ChallengeName,
-                                     string? Session);

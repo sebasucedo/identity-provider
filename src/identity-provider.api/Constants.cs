@@ -16,16 +16,14 @@ public static class Constants
         public const string NEW_PASSWORD = "/new-password";
         public const string PROFILE = "/profile";
         public const string HEALTHCHECK = "/healthcheck";
+        public const string GENERATE_ANTIFORGERY_TOKEN = "/generate-antiforgery-token";
+
+        public const string SIGNUP = "/signup";
+        public const string CONFIRM_SIGNUP = "/confirm-signup";
+        public const string RESEND_CONFIRMATION = "/resend-confirmation";
 
         public const string CREATE_USER = "/admin/create-user";
         public const string RESET_PASSWORD = "/admin/reset-password";
-    }
-
-    public static class Credentials
-    {
-        public const string USERNAME = "USERNAME";
-        public const string PASSWORD = "PASSWORD";
-        public const string SECRET_HASH = "SECRET_HASH";
     }
 
     public static class SecretsManager
@@ -47,12 +45,8 @@ public static class Constants
 
     public static class FormIdentifier
     {
-        public const string TOKEN_USERNAME = "username";
-        public const string TOKEN_PASSWORD = "password";
-
-        public const string NEW_PASSWORD_USERNAME = "username";
-        public const string NEW_PASSWORD_NEW_PASSWORD = "newPassword";
-        public const string NEW_PASSWORD_SESSION = "session";
+        public const string CONFIRM_SIGNUP_USERNAME = "username";
+        public const string CONFIRM_SIGNUP_CODE = "code";
     }
 
     public static class Cognito
@@ -64,13 +58,25 @@ public static class Constants
     }
     public static class Tags
     {
+        public const string BASE = "Base";
         public const string ADMIN = "Admin";
+        public const string SIGNUP = "Signup";
     }
 
     public static class Keys
     {
         public const string APP_CLIENT = "AppClient";
         public const string IAM_CLIENT = "IamClient";
+        public const string X_CSRF_TOKEN = "X-CSRF-TOKEN";
+        public const string SECRET_HASH = "SECRET_HASH";
+        public const string USERNAME = "USERNAME";
+        public const string PASSWORD = "PASSWORD";
+        public const string NEW_PASSWORD = "NEW_PASSWORD";
     }
 
+    public static class AttributeTypes
+    {
+        public const string EMAIL = "email";
+        public const string EMAIL_VERIFIED = "email_verified";
+    }
 }

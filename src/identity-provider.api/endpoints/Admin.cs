@@ -1,5 +1,4 @@
 ﻿using Amazon.CognitoIdentityProvider.Model;
-using identity_provider.api.requests;
 using identity_provider.api.services;
 
 namespace identity_provider.api.endpoints;

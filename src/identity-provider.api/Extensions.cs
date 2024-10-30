@@ -2,13 +2,16 @@
 using Amazon.CloudWatchLogs;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Runtime;
+using FluentValidation;
 using identity_provider.api.services;
+using identity_provider.api.validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Sinks.AwsCloudWatch;
+using System;
 
 namespace identity_provider.api;
 
@@ -35,8 +38,15 @@ public static class Extensions
         services.AddTransient<AuthenticationService>();
         services.AddTransient<AdministrationService>();
 
+        services.AddScoped<IValidator<SignupRequest>, SignupRequestValidator>();
+        services.AddScoped<IValidator<TokenRequest>, TokenRequestValidator>();
+        services.AddScoped<IValidator<NewPasswordRequest>, NewPasswordRequestValidator>();
+        services.AddScoped<IValidator<ConfirmSignupRequest>, ConfirmSignupRequestValidator>();
+        services.AddScoped<IValidator<ResendConfirmationRequest>, ResendConfirmationRequestValidator>();
+
         return services;
     }
+
     public static IServiceCollection AddSecurity(this IServiceCollection services)
     {
         using var serviceProvider = services.BuildServiceProvider();
@@ -101,6 +111,14 @@ public static class Extensions
                 Scheme = "Bearer",
             });
 
+            c.AddSecurityDefinition(Constants.Keys.X_CSRF_TOKEN, new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Name = Constants.Keys.X_CSRF_TOKEN,
+                Type = SecuritySchemeType.ApiKey,
+                Description = "CSRF token required for POST requests"
+            });
+
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
@@ -110,6 +128,21 @@ public static class Extensions
                         {
                             Type = ReferenceType.SecurityScheme,
                             Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = Constants.Keys.X_CSRF_TOKEN
                         }
                     },
                     Array.Empty<string>()
@@ -128,20 +161,20 @@ public static class Extensions
         var logClient = new AmazonCloudWatchLogsClient(awsConfig.AccessKey, awsConfig.SecretKey, RegionEndpoint.GetBySystemName(awsConfig.Region));
 
         Log.Logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(configuration)
-            .Enrich.FromLogContext()
-            .WriteTo.AmazonCloudWatch(
-                logGroup: awsConfig.CloudWatch.LogGroupName,
-                logStreamPrefix: DateTime.UtcNow.ToString("yyyyMMddHHmmssfff"),
-                batchSizeLimit: 100,
-                queueSizeLimit: 10000,
-                batchUploadPeriodInSeconds: 15,
-                createLogGroup: true,
-                maxRetryAttempts: 3,
-                logGroupRetentionPolicy: LogGroupRetentionPolicy.OneMonth,
-                cloudWatchClient: logClient,
-                restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
-            .CreateLogger();
+                         .ReadFrom.Configuration(configuration)
+                         .Enrich.FromLogContext()
+                         .WriteTo.AmazonCloudWatch(
+                             logGroup: awsConfig.CloudWatch.LogGroupName,
+                             logStreamPrefix: DateTime.UtcNow.ToString("yyyyMMddHHmmssfff"),
+                             batchSizeLimit: 100,
+                             queueSizeLimit: 10000,
+                             batchUploadPeriodInSeconds: 15,
+                             createLogGroup: true,
+                             maxRetryAttempts: 3,
+                             logGroupRetentionPolicy: LogGroupRetentionPolicy.OneMonth,
+                             cloudWatchClient: logClient,
+                             restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
+                         .CreateLogger();
 
         return services;
     }

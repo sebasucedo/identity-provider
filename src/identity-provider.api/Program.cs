@@ -8,19 +8,21 @@ builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 
 IConfigurationRoot configuration = await GetConfiguration(builder);
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+});
+
 builder.Services.AddServices();
 
 builder.Services.AddSecurity();
 
 builder.Services.ConfigureLogger(configuration);
 builder.Host.UseSerilog();
+builder.Services.AddHealthChecks();
 
 builder.Services.AddSwagger();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.OperationFilter<FormDataOperationFilter>();
-});
 
 var app = builder.Build();
 
@@ -31,12 +33,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.MapHealthChecks(Constants.Endpoints.HEALTHCHECK);
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 
 app.AddEndpoints();
 app.AddAdminEndpoints();
+app.AddSignupEndpoints();
 
 app.Run();
 
