@@ -40,12 +40,12 @@ public class AdministrationService(Func<string, IAmazonCognitoIdentityProvider> 
                 [
                     new AttributeType
                     {
-                        Name = "email",
+                        Name = Constants.AttributeTypes.EMAIL,
                         Value = email
                     },
                     new AttributeType
                     {
-                        Name = "email_verified",
+                        Name = Constants.AttributeTypes.EMAIL_VERIFIED,
                         Value = "True",
                     }
                 ]
@@ -71,7 +71,36 @@ public class AdministrationService(Func<string, IAmazonCognitoIdentityProvider> 
         return response;
     }
 
-}
+    public async Task<bool> EmailExists(string email)
+    {
+        var request = new ListUsersRequest
+        {
+            UserPoolId = _userPoolId,
+            Filter = $"email = \"{email}\""
+        };
 
-public record ResetPasswordResponse(string UserId, string Message);
-public record UserCreatedResponse(string UserId, string Status, string Message);
+        var response = await _adminProvider.ListUsersAsync(request);
+        return response.Users.Count != 0;
+    }
+
+    public async Task<PasswordPolicy> GetUserPoolPasswordPolicy()
+    {
+        var request = new DescribeUserPoolRequest
+        {
+            UserPoolId = _userPoolId
+        };
+
+        var response = await _adminProvider.DescribeUserPoolAsync(request);
+        var passwordPolicy = response.UserPool.Policies.PasswordPolicy;
+
+        return new PasswordPolicy
+        {
+            MinimumLength = passwordPolicy.MinimumLength,
+            RequireLowercase = passwordPolicy.RequireLowercase,
+            RequireNumbers = passwordPolicy.RequireNumbers,
+            RequireSymbols = passwordPolicy.RequireSymbols,
+            RequireUppercase = passwordPolicy.RequireUppercase,
+            TemporaryPasswordValidityDays = passwordPolicy.TemporaryPasswordValidityDays,
+        };
+    }
+}
