@@ -22,8 +22,9 @@ public static class Constants
         public const string CONFIRM_SIGNUP = "/confirm-signup";
         public const string RESEND_CONFIRMATION = "/resend-confirmation";
 
-        public const string CREATE_USER = "/admin/create-user";
-        public const string RESET_PASSWORD = "/admin/reset-password";
+        public const string CREATE_USER = "/admin/users";
+        public const string RESET_PASSWORD = "/admin/users/{userId}/reset-password";
+        public const string DISABLE_USER = "/admin/users/{userId}/disable";
     }
 
     public static class SecretsManager
