@@ -7,7 +7,7 @@ Este proyecto es un identity provider desarrollado en .NET que utiliza AWS Cogni
  
 ## Diagram
 
-![identity-provider drawio](https://github.com/user-attachments/assets/ee77e07e-052b-4eac-8d65-b056012f48c5)
+![identity-provider drawio](https://github.com/user-attachments/assets/155277cd-8cba-41b0-98b8-8a2600ee6347)
 
 
 ## Requisitos
