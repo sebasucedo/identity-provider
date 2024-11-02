@@ -3,6 +3,7 @@ using Amazon.CloudWatchLogs;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Runtime;
 using FluentValidation;
+using identity_provider.api.models;
 using identity_provider.api.services;
 using identity_provider.api.validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -43,6 +44,7 @@ public static class Extensions
         services.AddScoped<IValidator<NewPasswordRequest>, NewPasswordRequestValidator>();
         services.AddScoped<IValidator<ConfirmSignupRequest>, ConfirmSignupRequestValidator>();
         services.AddScoped<IValidator<ResendConfirmationRequest>, ResendConfirmationRequestValidator>();
+        services.AddScoped<IValidator<ResetPasswordModel>, ResetPasswordModelValidator>();
 
         return services;
     }
