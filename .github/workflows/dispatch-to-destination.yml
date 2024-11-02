@@ -1,0 +1,22 @@
+name: Dispatch Event to Other Repo
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  dispatch_job:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+      DESTINATION_OWNER: ${{ secrets.DESTINATION_OWNER }}
+      DESTINATION_REPO: ${{ secrets.DESTINATION_REPO }}
+
+    steps:
+      - name: Send repository_dispatch to another repo
+        run: |
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+               -H "Accept: application/vnd.github.everest-preview+json" \
+               https://api.github.com/repos/$DESTINATION_OWNER/$DESTINATION_REPO/dispatches \
+               -d '{"event_type": "trigger-from-other-repo"}'
