@@ -103,13 +103,13 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
 
         var response = await _provider.SignUpAsync(signUpRequest);
         var codeDeliveryDetails = $"A verification code has been sent to your email ({response.CodeDeliveryDetails.Destination}).";
-        var result = new SignUpResponse(response.UserSub, 
+        var result = new SignUpResponse(response.UserSub,
                                         codeDeliveryDetails);
 
         return result;
     }
 
-    public async Task ConfirmSignUp(string username, 
+    public async Task ConfirmSignUp(string username,
                                     string confirmationCode)
     {
         var request = new ConfirmSignUpRequest
@@ -143,6 +143,30 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
 
         if (response.HttpStatusCode != HttpStatusCode.OK)
             throw new Exception("Error resending confirmation code");
+    }
+
+    public async Task<AuthenticationResponse> RefreshToken(string username, string refreshToken)
+    {
+        var authRequest = new InitiateAuthRequest
+        {
+            AuthFlow = AuthFlowType.REFRESH_TOKEN_AUTH,
+            ClientId = _clientId,
+            AuthParameters = new Dictionary<string, string>
+            {
+                { Constants.Keys.REFRESH_TOKEN, refreshToken }
+            }
+        };
+
+        if (!string.IsNullOrEmpty(_clientSecret))
+            authRequest.AuthParameters.Add(Constants.Keys.SECRET_HASH, CalculateSecretHash(username));
+
+        var authResponse = await _provider.InitiateAuthAsync(authRequest);
+        var result = new AuthenticationResponse(authResponse.AuthenticationResult.AccessToken,
+                                                authResponse.AuthenticationResult.IdToken,
+                                                authResponse.AuthenticationResult.RefreshToken,
+                                                null,
+                                                null);
+        return result;
     }
 
     private string CalculateSecretHash(string username)

@@ -10,7 +10,7 @@ public static class Base
 {
     public static void AddEndpoints(this WebApplication app)
     {
-        app.MapPost(Constants.Endpoints.TOKEN, async (IValidator<TokenRequest>  validator, [FromForm] TokenRequest request, AuthenticationService service) =>
+        app.MapPost(Constants.Endpoints.TOKEN, async (IValidator<TokenRequest> validator, [FromForm] TokenRequest request, AuthenticationService service) =>
         {
             try
             {
@@ -22,7 +22,7 @@ public static class Base
                 var response = new ApiResponse<AuthenticationResponse>
                 {
                     Success = true,
-                    Message = "Token generated",
+                    Message = "Tokens generated",
                     Data = result,
                 };
                 return Results.Ok(response);
@@ -38,11 +38,43 @@ public static class Base
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "Error getting token");
+                Serilog.Log.Error(ex, "Error getting tokens");
                 throw;
             }
         })
-        .WithName("GetToken")
+        .WithName("PostToken")
+        .WithTags(Constants.Tags.BASE)
+        .WithOpenApi();
+
+        app.MapPost(Constants.Endpoints.REFRESH_TOKEN, async(RefreshTokenRequest request, AuthenticationService service) =>
+        {
+            try
+            {
+                var result = await service.RefreshToken(request.Username, request.RefreshToken);
+                var response = new ApiResponse<AuthenticationResponse>
+                {
+                    Success = true,
+                    Message = "Tokens generated",
+                    Data = result,
+                };
+                return Results.Ok(response);
+            }
+            catch (NotAuthorizedException ex)
+            {
+                var errorResponse = new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                };
+                return Results.Json(errorResponse, statusCode: StatusCodes.Status401Unauthorized);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Error getting tokens");
+                throw;
+            }
+        })
+        .WithName("PostRefreshToken")
         .WithTags(Constants.Tags.BASE)
         .WithOpenApi();
 

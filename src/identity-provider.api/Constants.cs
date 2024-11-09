@@ -13,6 +13,7 @@ public static class Constants
     public static class Endpoints
     {
         public const string TOKEN = "/token";
+        public const string REFRESH_TOKEN = "/refresh";
         public const string NEW_PASSWORD = "/new-password";
         public const string PROFILE = "/profile";
         public const string HEALTHCHECK = "/healthcheck";
@@ -73,6 +74,7 @@ public static class Constants
         public const string USERNAME = "USERNAME";
         public const string PASSWORD = "PASSWORD";
         public const string NEW_PASSWORD = "NEW_PASSWORD";
+        public const string REFRESH_TOKEN = "REFRESH_TOKEN";
     }
 
     public static class AttributeTypes
