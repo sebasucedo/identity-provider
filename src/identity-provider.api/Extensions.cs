@@ -42,6 +42,7 @@ public static class Extensions
         services.AddScoped<IValidator<SignupRequest>, SignupRequestValidator>();
         services.AddScoped<IValidator<TokenRequest>, TokenRequestValidator>();
         services.AddScoped<IValidator<NewPasswordRequest>, NewPasswordRequestValidator>();
+        services.AddScoped<IValidator<ChangePasswordRequest>, ChangePasswordRequestValidator>();
         services.AddScoped<IValidator<ConfirmSignupRequest>, ConfirmSignupRequestValidator>();
         services.AddScoped<IValidator<ResendConfirmationRequest>, ResendConfirmationRequestValidator>();
         services.AddScoped<IValidator<ResetPasswordModel>, ResetPasswordModelValidator>();
@@ -85,14 +86,6 @@ public static class Extensions
             {
                 policy.RequireRole(Constants.Roles.ADMINISTRATORS);
             });
-        });
-
-        services.AddTransient<IAmazonCognitoIdentityProvider>(provider =>
-        {
-            return new AmazonCognitoIdentityProviderClient(
-                        new BasicAWSCredentials(awsConfig.Cognito.ClientId, awsConfig.Cognito.ClientSecret),
-                            RegionEndpoint.GetBySystemName(awsConfig.Region)
-                                                         );
         });
 
         return services;

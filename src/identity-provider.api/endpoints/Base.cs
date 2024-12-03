@@ -46,7 +46,7 @@ public static class Base
         .WithTags(Constants.Tags.BASE)
         .WithOpenApi();
 
-        app.MapPost(Constants.Endpoints.REFRESH_TOKEN, async(RefreshTokenRequest request, AuthenticationService service) =>
+        app.MapPost(Constants.Endpoints.REFRESH_TOKEN, async (RefreshTokenRequest request, AuthenticationService service) =>
         {
             try
             {
@@ -78,7 +78,9 @@ public static class Base
         .WithTags(Constants.Tags.BASE)
         .WithOpenApi();
 
-        app.MapPost(Constants.Endpoints.NEW_PASSWORD, async (IValidator<NewPasswordRequest> validator, [FromForm] NewPasswordRequest request, AuthenticationService service) =>
+        app.MapPost(Constants.Endpoints.NEW_PASSWORD, async (IValidator<NewPasswordRequest> validator,
+                                                             [FromForm] NewPasswordRequest request,
+                                                             AuthenticationService service) =>
         {
             try
             {
@@ -104,6 +106,53 @@ public static class Base
         .WithName("PostNewPassword")
         .WithTags(Constants.Tags.BASE)
         .WithOpenApi();
+
+        app.MapPost(Constants.Endpoints.CHANGE_PASSWORD, async (IValidator<ChangePasswordRequest> validator,
+                                                                ChangePasswordRequest request,
+                                                                AuthenticationService service) =>
+        {
+            try
+            {
+                var validationResult = await validator.ValidateAsync(request);
+                if (!validationResult.IsValid)
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+
+                await service.ChangePassword(request.AccessToken, request.OldPassword, request.NewPassword);
+                var response = new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Password changed",
+                };
+                return Results.Ok(response);
+            }
+            catch (ArgumentException ex)
+            {
+                var response = new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                };
+                return Results.BadRequest(response);
+            }
+            catch (NotAuthorizedException ex)
+            {
+                var errorResponse = new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                };
+                return Results.Json(errorResponse, statusCode: StatusCodes.Status401Unauthorized);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Error changing password");
+                throw;
+            }
+        })
+        .WithName("PostChangePassword")
+        .WithTags(Constants.Tags.BASE)
+        .WithOpenApi()
+        .RequireAuthorization();
 
         app.MapGet(Constants.Endpoints.PROFILE, (HttpContext context) =>
         {
