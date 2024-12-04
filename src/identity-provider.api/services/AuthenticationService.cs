@@ -79,6 +79,20 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
         return result;
     }
 
+    public async Task<bool> ChangePassword(string accessToken, string oldPassword, string newPassword)
+    {
+        var changePasswordRequest = new Amazon.CognitoIdentityProvider.Model.ChangePasswordRequest
+        {
+            AccessToken = accessToken,
+
+            PreviousPassword = oldPassword,
+            ProposedPassword = newPassword,
+        };
+
+        var response = await _provider.ChangePasswordAsync(changePasswordRequest);
+        return response.HttpStatusCode == HttpStatusCode.OK;
+    }
+
     public async Task<SignUpResponse> SignUp(string username,
                                              string email,
                                              string password)
