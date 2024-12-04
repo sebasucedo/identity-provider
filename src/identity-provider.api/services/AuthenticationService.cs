@@ -79,7 +79,7 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
         return result;
     }
 
-    public async Task ChangePassword(string accessToken, string oldPassword, string newPassword)
+    public async Task<bool> ChangePassword(string accessToken, string oldPassword, string newPassword)
     {
         var changePasswordRequest = new Amazon.CognitoIdentityProvider.Model.ChangePasswordRequest
         {
@@ -90,7 +90,7 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
         };
 
         var response = await _provider.ChangePasswordAsync(changePasswordRequest);
-
+        return response.HttpStatusCode == HttpStatusCode.OK;
     }
 
     public async Task<SignUpResponse> SignUp(string username,

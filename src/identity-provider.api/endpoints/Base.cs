@@ -117,11 +117,11 @@ public static class Base
                 if (!validationResult.IsValid)
                     return Results.ValidationProblem(validationResult.ToDictionary());
 
-                await service.ChangePassword(request.AccessToken, request.OldPassword, request.NewPassword);
+                var ok = await service.ChangePassword(request.AccessToken, request.OldPassword, request.NewPassword);
                 var response = new ApiResponse<object>
                 {
-                    Success = true,
-                    Message = "Password changed",
+                    Success = ok,
+                    Message = ok ? "Password changed" : "Password change failed",
                 };
                 return Results.Ok(response);
             }
