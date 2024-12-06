@@ -98,7 +98,7 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
 
     public async Task<ForgotPasswordResponse> StartPasswordRecovery(string username)
     {
-        var request = new ForgotPasswordRequest
+        var request = new Amazon.CognitoIdentityProvider.Model.ForgotPasswordRequest
         {
             ClientId = _clientId,
             Username = username,

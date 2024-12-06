@@ -43,6 +43,8 @@ public static class Extensions
         services.AddScoped<IValidator<TokenRequest>, TokenRequestValidator>();
         services.AddScoped<IValidator<NewPasswordRequest>, NewPasswordRequestValidator>();
         services.AddScoped<IValidator<ChangePasswordRequest>, ChangePasswordRequestValidator>();
+        services.AddScoped<IValidator<ForgotPasswordRequest>, ForgotPasswordRequestValidator>();
+        services.AddScoped<IValidator<PasswordRecoveryRequest>, PasswordRecoveryRequestValidator>();
         services.AddScoped<IValidator<ConfirmSignupRequest>, ConfirmSignupRequestValidator>();
         services.AddScoped<IValidator<ResendConfirmationRequest>, ResendConfirmationRequestValidator>();
         services.AddScoped<IValidator<ResetPasswordModel>, ResetPasswordModelValidator>();

@@ -16,6 +16,8 @@ public static class Constants
         public const string REFRESH_TOKEN = "/refresh";
         public const string NEW_PASSWORD = "/new-password";
         public const string CHANGE_PASSWORD = "/change-password";
+        public const string FORGOT_PASSWORD = "/forgot-password";
+        public const string PASSWORD_RECOVERY = "/password-recovery";
         public const string PROFILE = "/profile";
         public const string HEALTHCHECK = "/healthcheck";
         public const string GENERATE_ANTIFORGERY_TOKEN = "/generate-antiforgery-token";
