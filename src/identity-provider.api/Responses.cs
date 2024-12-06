@@ -8,4 +8,5 @@ public record AuthenticationResponse(string? AccessToken,
                                      string? ChallengeName,
                                      string? Session);
 
+public record ForgotPasswordResponse(string deliveryMdeium, string destination);
 public record SignUpResponse(string UserId, string CodeDeliveryDetails);

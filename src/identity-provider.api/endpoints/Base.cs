@@ -3,6 +3,7 @@ using FluentValidation;
 using identity_provider.api.services;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace identity_provider.api.endpoints;
 
@@ -125,7 +126,7 @@ public static class Base
                 };
                 return Results.Ok(response);
             }
-            catch (ArgumentException ex)
+            catch (Exception ex) when (ex is LimitExceededException || ex is ArgumentException)
             {
                 var response = new ApiResponse<object>
                 {
@@ -153,6 +154,80 @@ public static class Base
         .WithTags(Constants.Tags.BASE)
         .WithOpenApi()
         .RequireAuthorization();
+
+        app.MapPost(Constants.Endpoints.FORGOT_PASSWORD, async (IValidator<ForgotPasswordRequest> validator,
+                                                                ForgotPasswordRequest request, 
+                                                                AuthenticationService service) =>
+        {
+            try
+            {
+                var validationResult = await validator.ValidateAsync(request);
+                if (!validationResult.IsValid)
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+
+                var details = await service.StartPasswordRecovery(request.Username);
+                var response = new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"Password recovery started."
+                };
+                return Results.Ok(response);
+            }
+            catch (InvalidParameterException ex)
+            {
+                var response = new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                };
+                return Results.BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Error starting password recovery process");
+                throw;
+            }
+        })
+        .WithName("PostForgotPassword")
+        .WithTags(Constants.Tags.BASE)
+        .WithOpenApi();
+
+        app.MapPost(Constants.Endpoints.PASSWORD_RECOVERY, async (IValidator<PasswordRecoveryRequest> validator,
+                                                                  PasswordRecoveryRequest request,
+                                                                  AuthenticationService service) =>
+        {
+            try
+            {
+                var validationResult = await validator.ValidateAsync(request);
+                if (!validationResult.IsValid)
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+
+                var ok = await service.ConfirmPasswordRecovery(request.Username, request.ConfirmationCode, request.NewPassword);
+                var response = new ApiResponse<object>
+                {
+                    Success = ok,
+                    Message = ok ? "Password recovered" : "Password recovery failed",
+                };
+                return Results.Ok(response);
+            }
+            catch (Exception ex) when (ex is ExpiredCodeException || ex is CodeMismatchException)
+            {
+                var response = new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                };
+                return Results.BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Error recovering password");
+                throw;
+            }
+        })
+        .WithName("PostPasswordRecovery")
+        .WithTags(Constants.Tags.BASE)
+        .WithOpenApi();
 
         app.MapGet(Constants.Endpoints.PROFILE, (HttpContext context) =>
         {

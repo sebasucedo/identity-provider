@@ -93,6 +93,42 @@ public class AuthenticationService(Func<string, IAmazonCognitoIdentityProvider> 
         return response.HttpStatusCode == HttpStatusCode.OK;
     }
 
+
+
+
+    public async Task<ForgotPasswordResponse> StartPasswordRecovery(string username)
+    {
+        var request = new Amazon.CognitoIdentityProvider.Model.ForgotPasswordRequest
+        {
+            ClientId = _clientId,
+            Username = username,
+        };
+
+        if (!string.IsNullOrEmpty(_clientSecret))
+            request.SecretHash = CalculateSecretHash(username);
+
+        var response = await _provider.ForgotPasswordAsync(request);
+        var details = response.CodeDeliveryDetails;
+        return new ForgotPasswordResponse(details.DeliveryMedium, details.Destination);
+    }
+
+    public async Task<bool> ConfirmPasswordRecovery(string username, string confirmationCode, string newPassword)
+    {
+        var request = new ConfirmForgotPasswordRequest
+        {
+            ClientId = _clientId,
+            Username = username,
+            ConfirmationCode = confirmationCode,
+            Password = newPassword,
+        };
+
+        if (!string.IsNullOrEmpty(_clientSecret))
+            request.SecretHash = CalculateSecretHash(username);
+
+        var response = await _provider.ConfirmForgotPasswordAsync(request);
+        return response.HttpStatusCode == HttpStatusCode.OK;
+    }
+
     public async Task<SignUpResponse> SignUp(string username,
                                              string email,
                                              string password)
