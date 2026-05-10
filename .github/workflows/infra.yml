@@ -1,0 +1,71 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infra/**'
+      - '.github/workflows/infra.yml'
+  workflow_dispatch:
+
+env:
+  TERRAFORM_VERSION: '1.6.0'
+  TERRAFORM_WORKSPACE: prod
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Configure Git for private Terraform modules
+        run: |
+          git config --global url."https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./infra
+
+      - name: Select Terraform Workspace
+        run: |
+          terraform workspace select "$TERRAFORM_WORKSPACE" || terraform workspace new "$TERRAFORM_WORKSPACE"
+        working-directory: ./infra
+
+      - name: Import Existing CloudFront Distribution
+        run: |
+          terraform state show aws_cloudfront_distribution.auth >/dev/null 2>&1 || \
+            terraform import aws_cloudfront_distribution.auth E3AZILY3V6LH6H
+        working-directory: ./infra
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        working-directory: ./infra
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: ./infra
+
+      - name: Deployment Summary
+        run: |
+          echo "## Infrastructure Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workspace:** $TERRAFORM_WORKSPACE" >> $GITHUB_STEP_SUMMARY
+          echo "**CloudFront:** $(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** $(terraform output -raw custom_domain_url)" >> $GITHUB_STEP_SUMMARY
+        working-directory: ./infra

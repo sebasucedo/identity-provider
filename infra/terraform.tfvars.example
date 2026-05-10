@@ -1,0 +1,14 @@
+# region = "us-east-1"
+# aws_profile = "default"
+
+# Defaults to auth.ucedo.io in the prod workspace.
+# domain_name = "auth.ucedo.io"
+
+# Optional. Leave null to look up ucedo.io by name.
+# route53_hosted_zone_id = "Z0302119PV1AI8MTHUTV"
+
+# Existing resources currently used in AWS.
+# cloudfront_distribution_id = "E3AZILY3V6LH6H"
+# acm_certificate_arn = "arn:aws:acm:us-east-1:618148662581:certificate/c0896358-06f5-4e07-93f3-8ec3e8c3d2bd"
+# origin_domain_name = "p6m6sm9kp6.execute-api.us-east-1.amazonaws.com"
+# origin_id = "p6m6sm9kp6.execute-api.us-east-1.amazonaws.com"
